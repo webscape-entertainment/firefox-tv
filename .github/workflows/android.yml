@@ -3,6 +3,12 @@ name: Android CI
 on:
   push:
   pull_request:
+  workflow_dispatch:
+    inputs:
+      debug_enabled:
+        description: 'Run the build with tmate debugging enabled (https://github.com/marketplace/actions/debugging-with-tmate)'     
+        required: false
+        default: 'false'
 
 jobs:
   build:
@@ -19,7 +25,16 @@ jobs:
 
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
+      
     - name: Build with Gradle
       run: ./gradlew assembleSystemRelease
+      
+    - name: Upload
+      uses: actions/upload-artifact@v2
+      with:
+        path: ./app/build/outputs/apk/system/release/app-system-release-unsigned.apk
+      
+    # Enable tmate debugging of manually-triggered workflows if the input option was provided
     - name: Setup tmate session
       uses: mxschmitt/action-tmate@v3
+      if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled }}
