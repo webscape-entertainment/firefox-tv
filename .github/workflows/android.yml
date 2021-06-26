@@ -29,10 +29,22 @@ jobs:
     - name: Build with Gradle
       run: ./gradlew assembleSystemRelease
       
-    - name: Upload
-      uses: actions/upload-artifact@v2
+    - uses: r0adkll/sign-android-release@v1
+      name: Sign app APK
+      # ID used to access action output
+      id: sign_app
       with:
-        path: ./app/build/outputs/apk/system/release/app-system-release-unsigned.apk
+        releaseDirectory: ./app/build/outputs/apk/system/release
+        signingKeyBase64: ${{ secrets.DEBUG_SIGNING_KEY }}
+        alias: ${{ secrets.DEBUG_ALIAS }}
+        keyStorePassword: ${{ secrets.DEBUG_KEY_PASSWORD }}
+        keyPassword: ${{ secrets.DEBUG_KEY_PASSWORD }}
+      
+    - uses: actions/upload-artifact@v2
+      with:
+        name: Signed app bundle
+        path: ${{steps.sign_app.outputs.signedReleaseFile}}
+      
       
     # Enable tmate debugging of manually-triggered workflows if the input option was provided
     - name: Setup tmate session
