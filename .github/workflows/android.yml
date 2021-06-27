@@ -89,6 +89,11 @@ jobs:
       with:
         name: Gecko release
         path: ${{steps.sign_app_gr.outputs.signedReleaseFile}}
+    
+    - name: Multicheck WebKit
+      run: ./gradlew clean assembleSystem assembleAndroidTest lint checkstyle ktlint pmd detekt test
+    - name: Multicheck Gecko
+      run: ./gradlew clean assembleGecko assembleAndroidTest lint checkstyle ktlint pmd detekt test
       
     # Enable tmate debugging of manually-triggered workflows if the input option was provided
     - name: Setup tmate session
