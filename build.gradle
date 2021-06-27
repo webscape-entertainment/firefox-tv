@@ -47,7 +47,7 @@ buildscript {
                 excludeGroupByRegex Dependencies.RepoMatching.mozilla
             }
         }
-        jcenter() {
+        mavenCentral() {
             content {
                 // Improve security: don't search deps with known repos.
                 excludeGroupByRegex Dependencies.RepoMatching.mozilla
@@ -88,6 +88,14 @@ allprojects {
     // This logic is duplicated in the buildscript block: I don't know how to fix that.
     repositories {
         maven {
+            name "Mozilla Nightly"
+            url "https://nightly.maven.mozilla.org/maven2"
+            content {
+                // Improve performance: only check moz maven for mozilla deps.
+                includeGroupByRegex Dependencies.RepoMatching.mozilla
+            }
+        }
+        maven {
             url "https://maven.mozilla.org/maven2"
             content {
                 // Improve performance: only check moz maven for mozilla deps.
@@ -106,7 +114,7 @@ allprojects {
                 excludeGroupByRegex Dependencies.RepoMatching.mozilla
             }
         }
-        jcenter() {
+        mavenCentral() {
             content {
                 // Improve security: don't search deps with known repos.
                 excludeGroupByRegex Dependencies.RepoMatching.mozilla

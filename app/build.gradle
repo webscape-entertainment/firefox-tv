@@ -227,7 +227,8 @@ dependencies {
     // depend on a separate library for unit tests. This will be removed in future releases.
     testImplementation "org.mozilla.telemetry:glean-forUnitTests:21.3.0"
 
-    androidTestImplementation "tools.fastlane:screengrab:1.2.0", {
+    androidTestImplementation "tools.fastlane:screengrab:2.0.0", {
+        implementation 'com.jraska:falcon:2.2.0'
         // This Fastlane dependency causes our builds to fail due to having two different
         // versions of UiAutomator. Fastlane is not on the most recent version of
         // com.android.support.test.uiautomator, which presumably prevents Jetifier from
