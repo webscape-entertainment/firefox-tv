@@ -26,25 +26,69 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
       
-    - name: Build with Gradle
-      run: ./gradlew assembleSystemRelease
-      
+    - name: Build SystemDebug
+      run: ./gradlew assembleSystemDebug
     - uses: r0adkll/sign-android-release@v1
       name: Sign app APK
-      # ID used to access action output
-      id: sign_app
+      id: sign_app_wd
+      with:
+        releaseDirectory: ./app/build/outputs/apk/system/debug
+        signingKeyBase64: ${{ secrets.DEBUG_SIGNING_KEY }}
+        alias: ${{ secrets.DEBUG_ALIAS }}
+        keyStorePassword: ${{ secrets.DEBUG_KEY_PASSWORD }}
+        keyPassword: ${{ secrets.DEBUG_KEY_PASSWORD }}   
+    - uses: actions/upload-artifact@v2
+      with:
+        name: WebView debug
+        path: ${{steps.sign_app_wd.outputs.signedReleaseFile}}
+        
+    - name: Build SystemRelease
+      run: ./gradlew assembleSystemRelease
+    - uses: r0adkll/sign-android-release@v1
+      name: Sign app APK
+      id: sign_app_wr
       with:
         releaseDirectory: ./app/build/outputs/apk/system/release
         signingKeyBase64: ${{ secrets.DEBUG_SIGNING_KEY }}
         alias: ${{ secrets.DEBUG_ALIAS }}
         keyStorePassword: ${{ secrets.DEBUG_KEY_PASSWORD }}
-        keyPassword: ${{ secrets.DEBUG_KEY_PASSWORD }}
-      
+        keyPassword: ${{ secrets.DEBUG_KEY_PASSWORD }}   
     - uses: actions/upload-artifact@v2
       with:
-        name: Signed app bundle
-        path: ${{steps.sign_app.outputs.signedReleaseFile}}
+        name: WebView release
+        path: ${{steps.sign_app_wr.outputs.signedReleaseFile}}
+        
+    - name: Build GeckoDebug
+      run: ./gradlew assembleGeckoDebug
+    - uses: r0adkll/sign-android-release@v1
+      name: Sign app APK
+      id: sign_app_gd
+      with:
+        releaseDirectory: ./app/build/outputs/apk/gecko/debug
+        signingKeyBase64: ${{ secrets.DEBUG_SIGNING_KEY }}
+        alias: ${{ secrets.DEBUG_ALIAS }}
+        keyStorePassword: ${{ secrets.DEBUG_KEY_PASSWORD }}
+        keyPassword: ${{ secrets.DEBUG_KEY_PASSWORD }}   
+    - uses: actions/upload-artifact@v2
+      with:
+        name: Gecko debug
+        path: ${{steps.sign_app_gd.outputs.signedReleaseFile}}
       
+    - name: Build GeckoRelease
+      run: ./gradlew assembleGeckoRelease
+    - uses: r0adkll/sign-android-release@v1
+      name: Sign app APK
+      id: sign_app_gr
+      with:
+        releaseDirectory: ./app/build/outputs/apk/gecko/release
+        signingKeyBase64: ${{ secrets.DEBUG_SIGNING_KEY }}
+        alias: ${{ secrets.DEBUG_ALIAS }}
+        keyStorePassword: ${{ secrets.DEBUG_KEY_PASSWORD }}
+        keyPassword: ${{ secrets.DEBUG_KEY_PASSWORD }}   
+    - uses: actions/upload-artifact@v2
+      with:
+        name: Gecko release
+        path: ${{steps.sign_app_gr.outputs.signedReleaseFile}}
       
     # Enable tmate debugging of manually-triggered workflows if the input option was provided
     - name: Setup tmate session
