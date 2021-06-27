@@ -4,14 +4,9 @@ on:
   push:
   pull_request:
   workflow_dispatch:
-    inputs:
-      debug_enabled:
-        description: 'Run the build with tmate debugging enabled (https://github.com/marketplace/actions/debugging-with-tmate)'     
-        required: false
-        default: 'false'
 
 jobs:
-  build:
+  webkit:
 
     runs-on: ubuntu-latest
 
@@ -25,8 +20,8 @@ jobs:
 
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
-      
-    - name: Build SystemDebug
+
+    - name: Build Debug
       run: ./gradlew assembleSystemDebug
     - uses: r0adkll/sign-android-release@v1
       name: Sign app APK
@@ -42,7 +37,7 @@ jobs:
         name: WebView debug
         path: ${{steps.sign_app_wd.outputs.signedReleaseFile}}
         
-    - name: Build SystemRelease
+    - name: Build Release
       run: ./gradlew assembleSystemRelease
     - uses: r0adkll/sign-android-release@v1
       name: Sign app APK
@@ -57,8 +52,26 @@ jobs:
       with:
         name: WebView release
         path: ${{steps.sign_app_wr.outputs.signedReleaseFile}}
-        
-    - name: Build GeckoDebug
+
+    - name: Multicheck
+      run: ./gradlew clean assembleSystem assembleAndroidTest lint checkstyle ktlint pmd detekt test
+
+  gecko:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: set up JDK 8
+      uses: actions/setup-java@v2
+      with:
+        java-version: '8'
+        distribution: 'adopt'
+
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+
+    - name: Build Debug
       run: ./gradlew assembleGeckoDebug
     - uses: r0adkll/sign-android-release@v1
       name: Sign app APK
@@ -74,7 +87,7 @@ jobs:
         name: Gecko debug
         path: ${{steps.sign_app_gd.outputs.signedReleaseFile}}
       
-    - name: Build GeckoRelease
+    - name: Build Release
       run: ./gradlew assembleGeckoRelease
     - uses: r0adkll/sign-android-release@v1
       name: Sign app APK
@@ -89,13 +102,6 @@ jobs:
       with:
         name: Gecko release
         path: ${{steps.sign_app_gr.outputs.signedReleaseFile}}
-    
-    - name: Multicheck WebKit
-      run: ./gradlew clean assembleSystem assembleAndroidTest lint checkstyle ktlint pmd detekt test
-    - name: Multicheck Gecko
+
+    - name: Multicheck
       run: ./gradlew clean assembleGecko assembleAndroidTest lint checkstyle ktlint pmd detekt test
-      
-    # Enable tmate debugging of manually-triggered workflows if the input option was provided
-    - name: Setup tmate session
-      uses: mxschmitt/action-tmate@v3
-      if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled }}
