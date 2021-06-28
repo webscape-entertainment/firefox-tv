@@ -12,7 +12,6 @@ import androidx.annotation.VisibleForTesting
 import mozilla.components.browser.session.Session
 import mozilla.components.support.utils.SafeIntent
 import org.mozilla.tv.firefox.components.locale.LocaleManager
-import org.mozilla.tv.firefox.ext.serviceLocator
 import org.mozilla.tv.firefox.telemetry.TelemetryIntegration
 import org.mozilla.tv.firefox.utils.UrlUtils
 

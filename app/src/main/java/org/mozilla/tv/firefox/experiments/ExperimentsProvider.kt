@@ -5,9 +5,7 @@
 package org.mozilla.tv.firefox.experiments
 
 import android.content.Context
-//import io.sentry.Sentry
 import org.mozilla.tv.firefox.R
-import org.mozilla.tv.firefox.components.locale.LocaleManager
 
 /**
  * [ExperimentsProvider] checks for experiment branch from [Fretboard] to provide its respective content.
