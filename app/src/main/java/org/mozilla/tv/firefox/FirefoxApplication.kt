@@ -73,7 +73,6 @@ open class FirefoxApplication : LocaleAwareApplication() {
             initRustDependencies()
             TelemetryIntegration.INSTANCE.init(this)
             initGlean()
-            initFretboard()
 
             enableStrictMode()
 
@@ -91,13 +90,6 @@ open class FirefoxApplication : LocaleAwareApplication() {
     private fun initRustDependencies() {
         Megazord.init()
         RustHttpConfig.setClient(lazy { OkHttpClient(OkHttpWrapper.client, this) })
-    }
-
-    private fun initFretboard() {
-        with(serviceLocator.fretboardProvider) {
-            loadExperiments()
-            updateExperiments()
-        }
     }
 
     // This method is used to call Glean.setUploadEnabled. During the tests, this is

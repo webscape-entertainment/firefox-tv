@@ -43,7 +43,6 @@ import org.mozilla.tv.firefox.channels.DefaultChannel
 import org.mozilla.tv.firefox.channels.DefaultChannelFactory
 import org.mozilla.tv.firefox.channels.SettingsChannelAdapter
 import org.mozilla.tv.firefox.channels.SettingsScreen
-import org.mozilla.tv.firefox.experiments.ExperimentConfig
 import org.mozilla.tv.firefox.ext.isKeyCodeSelect
 import org.mozilla.tv.firefox.ext.isVoiceViewEnabled
 import org.mozilla.tv.firefox.ext.serviceLocator
@@ -204,7 +203,7 @@ class NavigationOverlayFragment : Fragment() {
 
         initSettingsChannel() // When pulling everything into channels, add this to the channel RV
 
-        exitButton.contentDescription = serviceLocator.experimentsProvider.getAAExitButtonExperiment(ExperimentConfig.AA_TEST)
+        exitButton.contentDescription = serviceLocator.experimentsProvider.getAAExitButtonExperiment()
         fxaButton.contentDescription = getString(R.string.fxa_navigation_item_new, getString(R.string.app_name))
 
         val tintDrawable: (Drawable?) -> Unit = { it?.setTint(ContextCompat.getColor(context!!, R.color.photonGrey10_a60p)) }
