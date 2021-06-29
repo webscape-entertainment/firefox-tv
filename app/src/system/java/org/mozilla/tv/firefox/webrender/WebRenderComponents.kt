@@ -10,6 +10,11 @@ import mozilla.components.browser.session.SessionManager
 import mozilla.components.concept.engine.DefaultSettings
 import mozilla.components.concept.engine.Engine
 import mozilla.components.feature.session.SessionUseCases
+import mozilla.components.browser.session.Session
+import mozilla.components.lib.fetch.httpurlconnection.HttpURLConnectionClient
+import mozilla.components.browser.session.engine.EngineMiddleware
+import mozilla.components.browser.state.store.BrowserStore
+import mozilla.components.feature.session.middleware.LastAccessMiddleware
 import mozilla.components.support.utils.SafeIntent
 import org.mozilla.tv.firefox.R
 import org.mozilla.tv.firefox.utils.BuildConstants
@@ -53,5 +58,15 @@ class WebRenderComponents(applicationContext: Context, systemUserAgent: String) 
 
     val sessionManager by lazy { SessionManager(engine) }
 
-    val sessionUseCases by lazy { SessionUseCases(sessionManager) }
+    val client: Client by lazy { HttpURLConnectionClient() }
+
+    val store by lazy {
+        BrowserStore(middleware = listOf(
+            LastAccessMiddleware()
+        ) + EngineMiddleware.create(engine, ::findSessionById))
+    }
+
+    private fun findSessionById(tabId: String): Session? {
+        return sessionManager.findSessionById(tabId)
+    }
 }

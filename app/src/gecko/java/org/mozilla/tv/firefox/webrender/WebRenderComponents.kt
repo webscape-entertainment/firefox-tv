@@ -9,10 +9,15 @@ import mozilla.components.browser.engine.gecko.GeckoEngine
 import mozilla.components.browser.session.SessionManager
 import mozilla.components.concept.engine.DefaultSettings
 import mozilla.components.concept.engine.Engine
-import mozilla.components.feature.session.SessionUseCases
 import mozilla.components.support.utils.SafeIntent
 import org.mozilla.geckoview.GeckoRuntime
 import org.mozilla.geckoview.GeckoRuntimeSettings
+import mozilla.components.browser.engine.gecko.fetch.GeckoViewFetchClient
+import mozilla.components.browser.engine.gecko.glean.GeckoAdapter
+import mozilla.components.browser.session.Session
+import mozilla.components.browser.session.engine.EngineMiddleware
+import mozilla.components.browser.state.store.BrowserStore
+import mozilla.components.feature.session.middleware.LastAccessMiddleware
 import org.mozilla.tv.firefox.R
 import org.mozilla.tv.firefox.utils.BuildConstants
 import org.mozilla.tv.firefox.utils.Settings
@@ -35,25 +40,27 @@ class WebRenderComponents(applicationContext: Context, systemUserAgent: String) 
         return false
     }
 
-    val engine: Engine by lazy {
-        fun getUserAgent(): String = UserAgent.buildUserAgentString(
-                applicationContext,
-                systemUserAgent = systemUserAgent,
-                appName = applicationContext.resources.getString(R.string.useragent_appname))
-
-        val runtimeSettingsBuilder = GeckoRuntimeSettings.Builder()
+    private val runtime by lazy {
+        // Allow for exfiltrating Gecko metrics through the Glean SDK.
+        val builder = GeckoRuntimeSettings.Builder()
+        builder.telemetryDelegate(GeckoAdapter())
         if (BuildConstants.isDevBuild) {
             // In debug builds, allow to invoke via an Intent that has extras customizing Gecko.
             // In particular, this allows to add command line arguments for custom profiles, etc.
             val extras = launchSafeIntent?.extras
             if (extras != null) {
-                runtimeSettingsBuilder.extras(extras)
+                builder.extras(extras)
             }
         }
-        runtimeSettingsBuilder.autoplayDefault(GeckoRuntimeSettings.AUTOPLAY_DEFAULT_ALLOWED)
 
-        val runtime = GeckoRuntime.create(applicationContext,
-                runtimeSettingsBuilder.build())
+        GeckoRuntime.create(applicationContext, builder.build())
+    }
+
+    val engine: Engine by lazy {
+        fun getUserAgent(): String = UserAgent.buildUserAgentString(
+                applicationContext,
+                systemUserAgent = systemUserAgent,
+                appName = applicationContext.resources.getString(R.string.useragent_appname))
 
         GeckoEngine(applicationContext, DefaultSettings(
                 trackingProtectionPolicy = Settings.getInstance(applicationContext).trackingProtectionPolicy,
@@ -76,5 +83,17 @@ class WebRenderComponents(applicationContext: Context, systemUserAgent: String) 
 
     val sessionManager by lazy { SessionManager(engine) }
 
-    val sessionUseCases by lazy { SessionUseCases(sessionManager) }
+    val client by lazy { GeckoViewFetchClient(applicationContext, runtime) }
+
+    //val icons by lazy { BrowserIcons(applicationContext, client) }
+
+    val store by lazy {
+        BrowserStore(middleware = listOf(
+            LastAccessMiddleware()
+        ) + EngineMiddleware.create(engine, ::findSessionById))
+    }
+
+    private fun findSessionById(tabId: String): Session? {
+        return sessionManager.findSessionById(tabId)
+    }
 }

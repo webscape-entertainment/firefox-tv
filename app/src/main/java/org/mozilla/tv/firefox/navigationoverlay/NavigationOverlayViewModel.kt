@@ -14,9 +14,6 @@ import org.mozilla.tv.firefox.ScreenControllerStateMachine.ActiveScreen
 import org.mozilla.tv.firefox.channels.ChannelDetails
 import org.mozilla.tv.firefox.channels.ChannelRepo
 import org.mozilla.tv.firefox.channels.SettingsScreen
-import org.mozilla.tv.firefox.fxa.FxaLoginUseCase
-import org.mozilla.tv.firefox.fxa.FxaRepo
-import org.mozilla.tv.firefox.fxa.FxaRepo.AccountState
 import org.mozilla.tv.firefox.telemetry.TelemetryIntegration
 
 class ChannelTitles(
@@ -31,9 +28,7 @@ class NavigationOverlayViewModel(
     private val screenController: ScreenController,
     channelTitles: ChannelTitles,
     channelRepo: ChannelRepo,
-    toolbarViewModel: ToolbarViewModel,
-    private val fxaRepo: FxaRepo,
-    private val fxaLoginUseCase: FxaLoginUseCase
+    toolbarViewModel: ToolbarViewModel
 ) : ViewModel() {
 
     val pinnedTiles: Observable<ChannelDetails> = channelRepo.getPinnedTiles()
@@ -79,21 +74,6 @@ class NavigationOverlayViewModel(
             screenController.showSettingsScreen(fragmentManager, SettingsScreen.FXA_PROFILE)
             TelemetryIntegration.INSTANCE.fxaShowProfileButtonClickEvent()
         }
-
-        when (fxaRepo.accountState.blockingFirst()) {
-            is AccountState.AuthenticatedWithProfile -> showFxaProfileScreen()
-            is AccountState.AuthenticatedNoProfile -> {
-                // TODO The UI for this error state is not perfect. See #2721
-                showFxaProfileScreen()
-            }
-            is AccountState.NeedsReauthentication -> {
-                TelemetryIntegration.INSTANCE.fxaReauthorizeButtonClickEvent()
-                fxaLoginUseCase.beginLogin(fragmentManager)
-            }
-            is AccountState.NotAuthenticated, AccountState.Initial -> {
-                TelemetryIntegration.INSTANCE.fxaLoginButtonClickEvent()
-                fxaLoginUseCase.beginLogin(fragmentManager)
-            }
-        }
+        showFxaProfileScreen()
     }
 }

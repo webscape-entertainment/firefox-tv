@@ -30,7 +30,7 @@ class SessionObserverHelper private constructor(sessionRepo: SessionRepo) {
             sessionRepo.update()
         }
 
-        override fun onDesktopModeChanged(session: Session, enabled: Boolean) {
+        fun onDesktopModeChanged(session: Session, enabled: Boolean) {
             sessionRepo.update()
         }
 
@@ -38,7 +38,7 @@ class SessionObserverHelper private constructor(sessionRepo: SessionRepo) {
             sessionRepo.update()
         }
 
-        override fun onNavigationStateChanged(session: Session, canGoBack: Boolean, canGoForward: Boolean) {
+        fun onNavigationStateChanged(session: Session, canGoBack: Boolean, canGoForward: Boolean) {
             sessionRepo.update()
         }
     }

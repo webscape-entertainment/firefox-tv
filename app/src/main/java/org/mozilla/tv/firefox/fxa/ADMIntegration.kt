@@ -14,7 +14,7 @@ import mozilla.components.concept.sync.TabData
 import mozilla.components.feature.push.AutoPushFeature
 import mozilla.components.feature.push.PushConfig
 import mozilla.components.feature.push.ServiceType
-import mozilla.components.feature.sendtab.SendTabFeature
+import mozilla.components.feature.accounts.push.SendTabFeature
 import mozilla.components.service.fxa.manager.FxaAccountManager
 import mozilla.components.support.base.log.logger.Logger
 
@@ -51,7 +51,7 @@ class ADMIntegration(private val app: Application) {
         if (isADMAvailable) {
             // For push to work in debug builds (not needed for release), an api key is needed in the assets folder.
             // See README for instructions.
-            SendTabFeature(accountManager, pushFeature) { device, tabData ->
+            SendTabFeature(accountManager) { device, tabData ->
                 _receivedTabsRaw.onNext(ReceivedTabs(device, tabData))
             }
         }

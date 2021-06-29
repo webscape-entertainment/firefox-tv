@@ -10,7 +10,6 @@ apply plugin: 'com.android.application'
 apply plugin: 'com.google.android.gms.oss-licenses-plugin'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
-apply plugin: 'findbugs'
 apply plugin: 'jacoco'
 apply plugin: 'pmd'
 apply plugin: 'checkstyle'
@@ -20,12 +19,12 @@ apply from: "$project.rootDir/tools/gradle/versionCode.gradle"
 
 android {
     compileSdkVersion 28
-    buildToolsVersion '28.0.3'
+    //buildToolsVersion '28.0.3'
 
     defaultConfig {
         applicationId "org.mozilla.tv.firefox"
         minSdkVersion 22
-        targetSdkVersion 28
+        targetSdkVersion 29
         versionCode 11 // This versionCode is "frozen" for local builds. For "release" builds we
         // override this with a generated versionCode at build time.
         versionName "4.8"
@@ -127,11 +126,6 @@ configurations {
     geckoImplementation {}
 }
 
-// Generate markdown docs for the collected metrics.
-ext.gleanGenerateMarkdownDocs = true
-ext.gleanDocsDirectory = "$rootDir/docs/glean"
-apply from: 'https://github.com/mozilla-mobile/android-components/raw/v' + rootProject.ext.moz_components_version + '/components/service/glean/scripts/sdk_generator.gradle'
-
 dependencies {
     implementation 'io.sentry:sentry-android:1.7.21'
 
@@ -147,11 +141,6 @@ dependencies {
     implementation "androidx.work:work-runtime-ktx:$androidx_work_version"
     implementation 'com.squareup.picasso:picasso:2.71828'
 
-    implementation ("com.google.code.findbugs:annotations:3.0.1") {
-        // We really only need the SuppressFBWarnings annotation, everything else can be ignored.
-        // Without this we get weird failures due to dependencies.
-        transitive = false
-    }
 
     implementation "org.mozilla.components:concept-fetch:$moz_components_version"
     implementation "org.mozilla.components:concept-push:$moz_components_version"
@@ -162,24 +151,24 @@ dependencies {
     implementation "org.mozilla.components:browser-search:$moz_components_version"
     implementation "org.mozilla.components:browser-domains:$moz_components_version"
     implementation "org.mozilla.components:concept-engine:$moz_components_version"
-    implementation "org.mozilla.components:service-telemetry:$moz_components_version"
     implementation "org.mozilla.components:ui-colors:$moz_components_version"
     implementation "org.mozilla.components:ui-fonts:$moz_components_version"
     implementation "org.mozilla.components:feature-session:$moz_components_version"
     implementation "org.mozilla.components:feature-push:$moz_components_version"
-    implementation "org.mozilla.components:feature-sendtab:$moz_components_version"
+    implementation "org.mozilla.components:feature-accounts-push:$moz_components_version"
     implementation "org.mozilla.components:ui-icons:$moz_components_version"
     implementation "org.mozilla.components:service-firefox-accounts:$moz_components_version"
     implementation "org.mozilla.components:support-ktx:$moz_components_version"
     implementation "org.mozilla.components:support-utils:$moz_components_version"
     implementation "org.mozilla.components:support-rusthttp:$moz_components_version"
     implementation "org.mozilla.components:service-glean:$moz_components_version"
+    implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.2.0"
 
     systemImplementation "org.mozilla.components:browser-engine-system:$moz_components_version"
     // Required to override android.support lib in GeckoView dependency (uses palette-v7:26.1.0)
     geckoImplementation "androidx.palette:palette:$androidx_version"
-    geckoImplementation "org.mozilla.components:browser-engine-gecko-nightly:$moz_components_version"
-    geckoImplementation "org.mozilla.geckoview:geckoview-nightly"
+    geckoImplementation "org.mozilla.components:browser-engine-gecko:$moz_components_version"
+    geckoImplementation "org.mozilla.geckoview:geckoview"
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_version"
@@ -246,6 +235,11 @@ dependencies {
 
     implementation "com.google.android.gms:play-services-oss-licenses:$oss_licenses_version"
 }
+
+// Generate markdown docs for the collected metrics.
+ext.gleanGenerateMarkdownDocs = true
+ext.gleanDocsDirectory = "$rootDir/docs/glean"
+apply plugin: "org.mozilla.telemetry.glean-gradle-plugin"
 
 // Removed due to glean upgrade - https://github.com/mozilla-mobile/firefox-tv/issues/2989
 // task validateReleaseConfiguration(type: ValidateAndroidAppReleaseConfiguration)
@@ -371,7 +365,7 @@ task generateLocaleList {
         localeList << "import java.util.List;" << "\n"
         localeList << "\n"
         localeList << "public class LocaleList {" << "\n"
-        // findbugs doesn't like "public static final String[]", see http://findbugs.sourceforge.net/bugDescriptions.html#MS_MUTABLE_ARRAY
+        // spotbugs doesn't like "public static final String[]", see http://spotbugs.sourceforge.net/bugDescriptions.html#MS_MUTABLE_ARRAY
         localeList << "    public static final List<String> BUNDLED_LOCALES = Collections.unmodifiableList(Arrays.asList(new String[] { "
         localeList << getEnabledLocales().join(", ") + " }));" << "\n"
         localeList << "}" << "\n"
@@ -389,34 +383,8 @@ clean.doLast {
 }
 
 // -------------------------------------------------------------------------------------------------
-// Static Analysis: findbugs and pmd
+// Static Analysis: pmd
 // -------------------------------------------------------------------------------------------------
-
-findbugs {
-    ignoreFailures = false
-
-    effort = "max"
-    // This selects what level of bugs to report: low means low priority issues will be reported
-    // (in addition to medium+high), which corresponds to warning about everything.
-    // TODO: boost this to low once low priority issues are fixed.
-    reportLevel = "medium"
-
-    excludeFilter = new File("${project.rootDir}/quality/findbugs-exclude.xml")
-}
-
-task findbugs(type: FindBugs, dependsOn: "assemble", group: 'verification') {
-    classes = files("$projectDir.absolutePath/build/intermediates/classes")
-
-    source = fileTree('src/main/java')
-    classpath = files()
-
-    // Only one report format is supported. Html is easier to read, so let's use that
-    // (xml is the one that's enabled by default).
-    reports {
-        xml.enabled = false
-        html.enabled = true
-    }
-}
 
 pmd {
     toolVersion = '5.5.2'
@@ -493,5 +461,5 @@ if (project.hasProperty("coverage")) {
 }
 
 afterEvaluate {
-    check.dependsOn 'findbugs', 'pmd', 'checkstyle'
+    check.dependsOn 'pmd', 'checkstyle'
 }

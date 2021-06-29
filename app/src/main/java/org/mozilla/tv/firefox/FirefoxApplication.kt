@@ -13,11 +13,13 @@ import io.reactivex.subjects.Subject
 import mozilla.appservices.Megazord
 import mozilla.components.concept.engine.utils.EngineVersion
 import mozilla.components.lib.fetch.okhttp.OkHttpClient
+import mozilla.components.service.glean.net.ConceptFetchHttpUploader
 import mozilla.components.service.glean.Glean
 import mozilla.components.service.glean.config.Configuration
 import mozilla.components.support.base.log.Log
 import mozilla.components.support.base.log.sink.AndroidLogSink
 import mozilla.components.support.ktx.android.content.runOnlyInMainProcess
+import mozilla.components.browser.state.action.SystemAction
 import mozilla.components.support.ktx.android.os.resetAfter
 import mozilla.components.support.rusthttp.RustHttpConfig
 import org.mozilla.tv.firefox.GleanMetrics.LegacyIds
@@ -112,7 +114,8 @@ open class FirefoxApplication : LocaleAwareApplication() {
     private fun initGlean() {
         setGleanUpload()
         LegacyIds.clientId.set(UUID.fromString(TelemetryIntegration.INSTANCE.clientId))
-        Glean.initialize(applicationContext, Configuration(channel = BuildConfig.BUILD_TYPE))
+        val httpClient = ConceptFetchHttpUploader(lazy { OkHttpClient(OkHttpWrapper.client, this) })
+        Glean.initialize(applicationContext, false, Configuration(httpClient, "https://incoming.telemetry.mozilla.org",channel = BuildConfig.BUILD_TYPE))
     }
 
     // ServiceLocator needs to be created in onCreate in order to accept Application
@@ -140,10 +143,13 @@ open class FirefoxApplication : LocaleAwareApplication() {
         StrictMode.setVmPolicy(vmPolicyBuilder.build())
     }
 
-    override fun onLowMemory() {
-        super.onLowMemory()
+    override fun onTrimMemory(level: Int) {
+        super.onTrimMemory(level)
         OkHttpWrapper.onLowMemory()
-        serviceLocator.sessionManager.onLowMemory()
+        //serviceLocator.sessionManager.onTrimMemory()
+        runOnlyInMainProcess {
+            components.store.dispatch(SystemAction.LowMemoryAction(level))
+        }
         // If you need to dump more memory, you may be able to clear the Picasso cache.
     }
 

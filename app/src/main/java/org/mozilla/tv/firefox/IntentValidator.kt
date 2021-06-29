@@ -10,6 +10,7 @@ import android.os.Bundle
 import android.text.TextUtils
 import androidx.annotation.VisibleForTesting
 import mozilla.components.browser.session.Session
+import mozilla.components.browser.state.state.SessionState
 import mozilla.components.support.utils.SafeIntent
 import org.mozilla.tv.firefox.components.locale.LocaleManager
 import org.mozilla.tv.firefox.telemetry.TelemetryIntegration
@@ -18,7 +19,7 @@ import org.mozilla.tv.firefox.utils.UrlUtils
 private const val EXTRA_FETCH_DELAY_KEY = "qaFetchDelaySeconds"
 private const val EXTRA_SELECTED_LOCALE = "qaSelectedLocale"
 
-data class ValidatedIntentData(val url: String, val source: Session.Source)
+data class ValidatedIntentData(val url: String, val source: SessionState.Source)
 
 /**
  * A container for functions that parse Intents and notify the application of their validity.
@@ -61,7 +62,7 @@ object IntentValidator {
                 val dialParams = intent.extras?.getString(DIAL_PARAMS_KEY) ?: return null
                 if (dialParams.isNotEmpty()) {
                     TelemetryIntegration.INSTANCE.youtubeCastEvent()
-                    return ValidatedIntentData(url = "https://www.youtube.com/tv?$dialParams", source = Session.Source.ACTION_VIEW)
+                    return ValidatedIntentData(url = "https://www.youtube.com/tv?$dialParams", source = SessionState.Source.ACTION_VIEW)
                 }
             }
             Intent.ACTION_VIEW -> {
@@ -70,7 +71,7 @@ object IntentValidator {
                     return null // We can't create a session from an Intent without a URL.
                 }
                 TelemetryIntegration.INSTANCE.viewIntentEvent()
-                return ValidatedIntentData(dataString, Session.Source.ACTION_VIEW)
+                return ValidatedIntentData(dataString, SessionState.Source.ACTION_VIEW)
             }
             Intent.ACTION_SEND -> {
                 val dataString = intent.getStringExtra(Intent.EXTRA_TEXT) ?: ""
@@ -80,7 +81,7 @@ object IntentValidator {
 
                 val isSearch = !UrlUtils.isUrl(dataString)
                 val url = if (isSearch) UrlUtils.createSearchUrl(context, dataString) else dataString
-                return ValidatedIntentData(url, Session.Source.ACTION_SEND)
+                return ValidatedIntentData(url, SessionState.Source.ACTION_SEND)
             }
         }
         return null

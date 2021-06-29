@@ -7,9 +7,9 @@ import org.mozilla.gradle.Dependencies
 buildscript {
     ext.androidx_version = '1.0.0'
     ext.architecture_components_version = '2.0.0'
-    ext.kotlin_version = '1.3.31'
+    ext.kotlin_version = '1.3.50'
     ext.coroutines_version = '1.0.1'
-    ext.moz_components_version = '24.0.0'
+    ext.moz_components_version = '75.0.23'
     ext.androidx_work_version = '2.0.1'
     ext.adm_version = '1.0.1' // Also update proguard rule if this gets updated
     ext.oss_licenses_version = '17.0.0'
@@ -41,6 +41,7 @@ buildscript {
                 includeGroupByRegex Dependencies.RepoMatching.androidx
                 includeGroupByRegex Dependencies.RepoMatching.comGoogleAndroid
                 includeGroupByRegex Dependencies.RepoMatching.comAndroid
+                includeGroup("com.android")
 
                 // Improve security: don't search deps with known repos. In theory, this is unnecessary
                 // if includeGroup is specified, but it's helpful in case includeGroup is removed.
@@ -61,13 +62,14 @@ buildscript {
     dependencies {
         // If you ever see strange Gradle behavior that looks related to the version,
         // double check that this matches build.gradle.kts
-        classpath 'com.android.tools.build:gradle:3.4.1'
+        classpath 'com.android.tools.build:gradle:4.0.1'
 
         classpath 'org.ajoberstar:grgit:1.5.0'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
 
         classpath 'com.google.android.gms:oss-licenses-plugin:0.9.5'
 
+        classpath "org.mozilla.components:tooling-glean-gradle:$moz_components_version"
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }
@@ -108,6 +110,7 @@ allprojects {
                 includeGroupByRegex Dependencies.RepoMatching.androidx
                 includeGroupByRegex Dependencies.RepoMatching.comGoogleAndroid
                 includeGroupByRegex Dependencies.RepoMatching.comAndroid
+                includeGroup("com.android")
 
                 // Improve security: don't search deps with known repos. In theory, this is unnecessary
                 // if includeGroup is specified, but it's helpful in case includeGroup is removed.

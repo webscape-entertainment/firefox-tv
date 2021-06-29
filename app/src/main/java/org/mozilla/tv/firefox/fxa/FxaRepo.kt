@@ -3,18 +3,21 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 package org.mozilla.tv.firefox.fxa
-
+/*
 import android.annotation.SuppressLint
 import android.app.Dialog
 import android.content.Context
 import android.preference.PreferenceManager
 import androidx.annotation.VisibleForTesting
 import androidx.annotation.VisibleForTesting.NONE
+import kotlinx.coroutines.launch
+import androidx.lifecycle.lifecycleScope
 import io.reactivex.Observable
 import io.reactivex.subjects.BehaviorSubject
 import kotlinx.android.synthetic.main.tabs_onboarding.descriptionText
 import kotlinx.android.synthetic.main.tabs_onboarding.tabs_onboarding_button
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.MainScope
 import mozilla.appservices.fxaclient.Config
 import mozilla.components.concept.sync.AccountObserver
 import mozilla.components.concept.sync.AuthType
@@ -22,7 +25,6 @@ import mozilla.components.concept.sync.DeviceCapability
 import mozilla.components.concept.sync.DeviceType
 import mozilla.components.concept.sync.OAuthAccount
 import mozilla.components.concept.sync.Profile
-import mozilla.components.service.fxa.DeviceConfig
 import mozilla.components.service.fxa.manager.FxaAccountManager
 import mozilla.components.support.base.log.logger.Logger
 import mozilla.components.support.base.observer.Consumable
@@ -54,7 +56,7 @@ private val APPLICATION_SCOPES = setOf(
  */
 class FxaRepo(
     val context: Context,
-    val accountManager: FxaAccountManager = newInstanceDefaultAccountManager(context),
+    //val accountManager: FxaAccountManager = newInstanceDefaultAccountManager(context),
     val admIntegration: ADMIntegration, // Consider moving to an FxaReceiveTabsUseCase or rm this comment.
     private val telemetryIntegration: TelemetryIntegration = TelemetryIntegration.INSTANCE,
     private val sentryIntegration: SentryIntegration = SentryIntegration
@@ -97,25 +99,28 @@ class FxaRepo(
         accountManager.register(accountObserver)
 
         @Suppress("DeferredResultUnused") // No value is returned & we don't need to wait for this to complete.
-        accountManager.initAsync() // If user is already logged in, the appropriate observers will be triggered.
-
+        MainScope().launch {
+            accountManager.start() // If user is already logged in, the appropriate observers will be triggered.
+        }
         admIntegration.createSendTabFeature(accountManager)
 
         setupTelemetry()
     }
 
     fun logout() {
-        @Suppress("DeferredResultUnused") // No value is returned & we don't need to wait for this to complete.
-        accountManager.logoutAsync()
+        //@Suppress("DeferredResultUnused") // No value is returned & we don't need to wait for this to complete.
+        //MainScope().launch {
+        //    accountManager.logout()
+        //}
     }
 
     /**
      * Notifies the FxA library that login is starting: callers should generally call [FxaLoginUseCase.beginLogin]
      * instead of this method.
      */
-    fun beginLoginInternalAsync(): Deferred<String?> {
-        return accountManager.beginAuthenticationAsync()
-    }
+    //fun beginLoginInternalAsync(): Deferred<String?> {
+        //return MainScope().launch { accountManager.beginAuthentication() }
+    //}
 
     fun showFxaOnboardingScreen(context: Context) {
         val dialog = Dialog(context, R.style.OverlayDialogStyle)
@@ -149,11 +154,11 @@ class FxaRepo(
      * TODO remove this after FxA adds push event for revoked logins
      * See: https://github.com/mozilla/application-services/issues/1418
      */
-    fun pollAccountState() {
-        @Suppress("DeferredResultUnused") // We don't need to do anything when
+    //fun pollAccountState() {
+        //@Suppress("DeferredResultUnused") // We don't need to do anything when
         // this finishes
-        accountManager.authenticatedAccount()?.deviceConstellation()?.pollForEventsAsync()
-    }
+        //accountManager.authenticatedAccount()?.deviceConstellation()?.pollForEventsAsync()
+    //}
 
     @SuppressLint("CheckResult") // This survives for the duration of the app
     private fun setupTelemetry() {
@@ -209,23 +214,24 @@ class FxaRepo(
         }
     }
 
-    companion object {
-        private const val CLIENT_ID = "85da77264642d6a1"
-        const val REDIRECT_URI = "${URLs.FIREFOX_ACCOUNTS}/oauth/success/$CLIENT_ID"
+    //companion object {
+    //    private const val CLIENT_ID = "85da77264642d6a1"
+    //    const val REDIRECT_URI = "${URLs.FIREFOX_ACCOUNTS}/oauth/success/$CLIENT_ID"
 
-        private fun newInstanceDefaultAccountManager(context: Context): FxaAccountManager {
-            val deviceModel = context.serviceLocator.deviceInfo.getDeviceModel()
-            return FxaAccountManager(
-                context,
-                Config.release(CLIENT_ID, REDIRECT_URI),
-                applicationScopes = APPLICATION_SCOPES,
-                deviceConfig = DeviceConfig(
-                    name = "Firefox on $deviceModel",
-                    type = DeviceType.TV,
-                    capabilities = setOf(DeviceCapability.SEND_TAB) // required to receive tabs.
-                ),
-                syncConfig = null
-            )
-        }
-    }
+    //    private fun newInstanceDefaultAccountManager(context: Context): FxaAccountManager {
+    //        val deviceModel = context.serviceLocator.deviceInfo.getDeviceModel()
+    //        return FxaAccountManager(
+    //            context,
+    //            Config.release(CLIENT_ID, REDIRECT_URI),
+    //            applicationScopes = APPLICATION_SCOPES,
+    //            deviceConfig = DeviceConfig(
+    //                name = "Firefox on $deviceModel",
+    //                type = DeviceType.TV,
+    //                capabilities = setOf(DeviceCapability.SEND_TAB) // required to receive tabs.
+    //            ),
+    //            syncConfig = null
+    //        )
+    //    }
+    //}
 }
+*/

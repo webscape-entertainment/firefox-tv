@@ -22,6 +22,7 @@ import io.sentry.Sentry
 import kotlinx.android.synthetic.main.activity_main.container_navigation_overlay
 import kotlinx.android.synthetic.main.overlay_debug.debugLog
 import mozilla.components.browser.session.Session
+import mozilla.components.browser.state.state.SessionState
 import mozilla.components.concept.engine.EngineView
 import mozilla.components.support.base.observer.Consumable
 import mozilla.components.support.utils.toSafeIntent
@@ -61,6 +62,7 @@ class MainActivity : LocaleAwareAppCompatActivity(), OnUrlEnteredListener, Media
         BEGIN_LOGIN
     }
 
+    @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         // We override onSaveInstanceState to not save state (for handling Clear Data), so startup flow
         // goes through onCreate.
@@ -83,7 +85,7 @@ class MainActivity : LocaleAwareAppCompatActivity(), OnUrlEnteredListener, Media
 
         val session = getOrCreateSession(intentData)
 
-        webRenderComponents.sessionManager.getOrCreateEngineSession().resetView(this@MainActivity)
+        //webRenderComponents.sessionManager.getOrCreateEngineSession().resetView(this@MainActivity)
 
         val screenController = serviceLocator.screenController
         screenController.setUpFragmentsForNewSession(supportFragmentManager, session)
@@ -126,7 +128,7 @@ class MainActivity : LocaleAwareAppCompatActivity(), OnUrlEnteredListener, Media
         return webRenderComponents.sessionManager.selectedSession
             ?: Session(
                 initialUrl = intentData?.url ?: URLs.APP_URL_HOME,
-                source = intentData?.source ?: Session.Source.NONE
+                source = intentData?.source ?: SessionState.Source.NONE
             ).also { webRenderComponents.sessionManager.add(it, selected = true) }
     }
 
@@ -236,7 +238,7 @@ class MainActivity : LocaleAwareAppCompatActivity(), OnUrlEnteredListener, Media
              *
              * See [EngineSession.resetView] for additional context
              */
-            webRenderComponents.sessionManager.getEngineSession()?.resetView(applicationContext)
+            //webRenderComponents.sessionManager.getEngineSession()?.resetView(applicationContext)
         }
         super.onDestroy()
     }
@@ -309,12 +311,12 @@ class MainActivity : LocaleAwareAppCompatActivity(), OnUrlEnteredListener, Media
             // We ensure that this is on the main thread because it provokes a fragment transaction,
             // and we want to avoid potential issues that could be caused by starting two in parallel
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe { consumableTab ->
-                consumableTab.consume { tab ->
-                    TelemetryIntegration.INSTANCE.receivedTabEvent(tab.metadata)
-                    openReceivedFxaTab(tab)
-                    true // Consume value
-                }
-            }
+            //.subscribe { consumableTab ->
+            //    consumableTab.consume { tab ->
+            //        TelemetryIntegration.INSTANCE.receivedTabEvent(tab.metadata)
+            //        openReceivedFxaTab(tab)
+            //        true // Consume value
+            //    }
+            //}
     }
 }

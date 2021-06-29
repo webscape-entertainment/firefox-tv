@@ -3,7 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 package org.mozilla.tv.firefox.fxa
-
+/*
 import android.net.Uri
 import androidx.fragment.app.FragmentManager
 import io.reactivex.Observable
@@ -117,6 +117,7 @@ class FxaLoginUseCase(
 
     private fun FxaAccountManager.finishAuthenticationAsync(keys: LoginSuccessKeys) {
         @Suppress("DeferredResultUnused") // We don't care to wait until completion.
-        finishAuthenticationAsync(FxaAuthData(keys.authType, keys.code, keys.state))
+        finishAuthenticationAsync(keys)
     }
 }
+*/
