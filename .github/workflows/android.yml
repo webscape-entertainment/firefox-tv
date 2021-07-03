@@ -54,7 +54,7 @@ jobs:
         path: ${{steps.sign_app_wr.outputs.signedReleaseFile}}
 
     - name: Multicheck
-      run: ./gradlew clean assembleSystem assembleAndroidTest lint checkstyle ktlint pmd detekt test
+      run: ./gradlew clean testSystemDebug assembleAndroidTest lint checkstyle ktlint pmd detekt test
 
   Gecko:
 
@@ -104,4 +104,4 @@ jobs:
         path: ${{steps.sign_app_gr.outputs.signedReleaseFile}}
 
     - name: Multicheck
-      run: ./gradlew clean assembleGecko assembleAndroidTest lint checkstyle ktlint pmd detekt test
+      run: ./gradlew clean testGeckoDebug assembleAndroidTest lint checkstyle ktlint pmd detekt test
